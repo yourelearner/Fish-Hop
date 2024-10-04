@@ -6,7 +6,7 @@ public class App {
     public static int HEIGHT = 520;
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame("Fish Hop");
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
@@ -18,5 +18,8 @@ public class App {
         frame.add(panel);
         frame.setResizable(false);
         frame.setSize(WIDTH, HEIGHT);
+        
+        //Start the music.
+        Sound.RunMusic("res/bgm.wav");
     }
 }

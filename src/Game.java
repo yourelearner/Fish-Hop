@@ -3,24 +3,26 @@ import java.util.ArrayList;
 
 public class Game {
 
-    public static final int PIPE_DELAY = 100;
+    public static final int ROCK_DELAY = 90;
 
     private Boolean paused;
-
+    
     private int pauseDelay;
     private int restartDelay;
-    private int pipeDelay;
+    private int rockDelay;
 
-    private Bird bird;
-    private ArrayList<Pipe> pipes;
+    private Fish fish;
+    private ArrayList<Rock> rocks;
     private Keyboard keyboard;
 
     public int score;
     public Boolean gameover;
     public Boolean started;
-
+    public final int title;
+    
     public Game() {
-        keyboard = Keyboard.getInstance();
+        this.title = 0;
+		keyboard = Keyboard.getInstance();
         restart();
     }
 
@@ -32,10 +34,10 @@ public class Game {
         score = 0;
         pauseDelay = 0;
         restartDelay = 0;
-        pipeDelay = 0;
+        rockDelay = 0;
 
-        bird = new Bird();
-        pipes = new ArrayList<Pipe>();
+        fish = new Fish();
+        rocks = new ArrayList<Rock>();
     }
 
     public void update() {
@@ -50,26 +52,27 @@ public class Game {
         if (paused)
             return;
 
-        bird.update();
+        fish.update();
 
         if (gameover)
             return;
 
-        movePipes();
+        moveRocks();
         checkForCollisions();
     }
 
     public ArrayList<Render> getRenders() {
         ArrayList<Render> renders = new ArrayList<Render>();
-        renders.add(new Render(0, 0, "lib/background.png"));
-        for (Pipe pipe : pipes)
-            renders.add(pipe.getRender());
+        renders.add(new Render(0, 0, "lib/bg.png"));
+        for (Rock rock : rocks)
+            renders.add(rock.getRender());
         renders.add(new Render(0, 0, "lib/foreground.png"));
-        renders.add(bird.getRender());
+        renders.add(fish.getRender());
         return renders;
     }
 
     private void watchForStart() {
+
         if (!started && keyboard.isDown(KeyEvent.VK_SPACE)) {
             started = true;
         }
@@ -96,65 +99,68 @@ public class Game {
         }
     }
 
-    private void movePipes() {
-        pipeDelay--;
+    private void moveRocks() {
+        rockDelay--;
 
-        if (pipeDelay < 0) {
-            pipeDelay = PIPE_DELAY;
-            Pipe northPipe = null;
-            Pipe southPipe = null;
+        if (rockDelay < 0) {
+            rockDelay = ROCK_DELAY;
+            Rock northRock = null;
+            Rock southRock = null;
 
-            // Look for pipes off the screen
-            for (Pipe pipe : pipes) {
-                if (pipe.x - pipe.width < 0) {
-                    if (northPipe == null) {
-                        northPipe = pipe;
-                    } else if (southPipe == null) {
-                        southPipe = pipe;
+            // Look for rocks off the screen
+            for (Rock rock : rocks) {
+                if (rock.x - rock.width < 0) {
+                    if (northRock == null) {
+                        northRock = rock;
+                    } else if (southRock == null) {
+                        southRock = rock;
                         break;
                     }
                 }
             }
 
-            if (northPipe == null) {
-                Pipe pipe = new Pipe("north");
-                pipes.add(pipe);
-                northPipe = pipe;
+            if (northRock == null) {
+                Rock rock = new Rock("north");
+                rocks.add(rock);
+                northRock = rock;
             } else {
-                northPipe.reset();
+                northRock.reset();
             }
 
-            if (southPipe == null) {
-                Pipe pipe = new Pipe("south");
-                pipes.add(pipe);
-                southPipe = pipe;
+            if (southRock == null) {
+                Rock rock = new Rock("south");
+                rocks.add(rock);
+                southRock = rock;
             } else {
-                southPipe.reset();
+                southRock.reset();
             }
 
-            northPipe.y = southPipe.y + southPipe.height + 175;
+            northRock.y = southRock.y + southRock.height + 150;
         }
 
-        for (Pipe pipe : pipes) {
-            pipe.update();
+        for (Rock rock : rocks) {
+            rock.update();
         }
     }
 
     private void checkForCollisions() {
 
-        for (Pipe pipe : pipes) {
-            if (pipe.collides(bird.x, bird.y, bird.width, bird.height)) {
+        for (Rock rock : rocks) {
+            if (rock.collides(fish.x, fish.y, fish.width, fish.height)) {
                 gameover = true;
-                bird.dead = true;
-            } else if (pipe.x == bird.x && pipe.orientation.equalsIgnoreCase("south")) {
+                fish.dead = true;
+                Sound.RunMusic("res/gos.wav");
+            } else if (rock.x == fish.x && rock.orientation.equalsIgnoreCase("south")) {
                 score++;
+                Sound.RunMusic("res/score.wav");
             }
         }
 
-        // Ground + Bird collision
-        if (bird.y + bird.height > App.HEIGHT - 80) {
+        // Ground + Fish collision
+        if (fish.y + fish.height > App.HEIGHT - 80) {
             gameover = true;
-            bird.y = App.HEIGHT - 80 - bird.height;
+            Sound.RunMusic("res/gos.wav");
+            fish.y = App.HEIGHT - 80 - fish.height;
         }
     }
 }
